@@ -30,7 +30,7 @@ class TestBuildSearchUrl:
         assert "trip.com" in url
         assert "city=73" in url
         assert "checkin=2026%2F07%2F15" in url
-        assert "curr=USD" in url
+        assert "curr=HKD" in url
         assert "/hotels/list" in url
 
     def test_unknown_city_url(self):

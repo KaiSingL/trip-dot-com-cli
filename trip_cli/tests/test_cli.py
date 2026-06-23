@@ -136,7 +136,7 @@ class TestConfigCli:
         # After unset, should fall back to default
         result = runner.invoke(cli, ["config", "get", "currency"])
         assert result.exit_code == 0
-        assert "currency = USD" in result.output  # from DEFAULTS in the mock
+        assert "currency = HKD" in result.output  # from DEFAULTS in the mock
 
 
 class TestCurrencyFromConfig:

@@ -85,7 +85,7 @@ def hotel() -> None:
 @click.option("--max-price", type=int, default=None, help="Max price per night (in local currency or USD).")
 @click.option("--sort", type=click.Choice(["price", "rating", "distance", "popularity"]), default="price", show_default=True)
 @click.option("--max-results", default=10, show_default=True, help="Limit number of results.")
-@click.option("--currency", default=None, help="Preferred currency for prices (e.g. USD, SGD, JPY). Falls back to config.")
+@click.option("--currency", default=None, help="Preferred currency for prices (e.g. HKD, USD, SGD, JPY). Falls back to config.")
 @handle_error
 def hotel_search(
     city: str,
@@ -105,7 +105,7 @@ def hotel_search(
         checkin, checkout = _default_dates()
 
     if currency is None:
-        currency = get_config_value("currency", "USD")
+        currency = get_config_value("currency", "HKD")
 
     req = HotelSearchRequest(
         city=city,
@@ -147,13 +147,13 @@ def hotel_search(
 
 @hotel.command("details")
 @click.argument("hotel_id")
-@click.option("--currency", default=None, help="Preferred currency for prices (e.g. USD, SGD, JPY). Falls back to config.")
+@click.option("--currency", default=None, help="Preferred currency for prices (e.g. HKD, USD, SGD, JPY). Falls back to config.")
 @click.option("--city", default=None, help="City slug for correct hotel detail URL (e.g. Bangkok, 'Kuala Lumpur'). Prevents 404 on direct links.")
 @handle_error
 def hotel_details(hotel_id: str, currency: str, city: str | None) -> None:
     """Get detailed information about a specific hotel."""
     if currency is None:
-        currency = get_config_value("currency", "USD")
+        currency = get_config_value("currency", "HKD")
 
     details = get_hotel_details(hotel_id, currency, city=city)
 
@@ -238,7 +238,7 @@ def config() -> None:
 @click.argument("key")
 @click.argument("value")
 def config_set(key: str, value: str) -> None:
-    """Set a config value (e.g. currency USD)."""
+    """Set a config value (e.g. currency HKD)."""
     set_config_value(key, value)
     click.echo(f"Set {key} = {value}")
 

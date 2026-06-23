@@ -33,7 +33,7 @@ MOCK_RAW_HOTELS = [
 ]
 
 MOCK_SEARCH_RESULT = {
-    "search_url": "https://hk.trip.com/hotels/list?city=73&checkin=2026/07/15&checkout=2026/07/18&crn=1&adult=2&children=0&curr=USD",
+    "search_url": "https://hk.trip.com/hotels/list?city=73&checkin=2026/07/15&checkout=2026/07/18&crn=1&adult=2&children=0&curr=HKD",
     "query_city": "Singapore",
     "cheapest": 95.0,
     "hotels": [
@@ -78,14 +78,14 @@ def mock_search_result():
 @pytest.fixture
 def mock_config(monkeypatch):
     """In-memory config for testing. Replaces the real config functions."""
-    cfg = {"currency": "USD", "region": "hk"}
+    cfg = {"currency": "HKD", "region": "hk"}
 
     def fake_get(key, default=None):
         if key in cfg:
             return cfg[key]
         # Mimic real behavior: fall back to module DEFAULTS
         if key == "currency":
-            return default or "USD"
+            return default or "HKD"
         if key == "region":
             return default or "hk"
         return default

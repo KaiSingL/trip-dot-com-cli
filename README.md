@@ -112,7 +112,7 @@ trip-cli --json destination search "bali"
 | `--max-price`     | Maximum price per night                  | —           |
 | `--sort`          | Sort order (`price`, `rating`, `popularity`) | price    |
 | `--max-results`   | Maximum number of results                | 10          |
-| `--currency`      | Display currency (falls back to config)  | USD         |
+| `--currency`      | Display currency (falls back to config)  | HKD         |
 | `--json`          | Output machine-readable JSON             | —           |
 
 ### `url`

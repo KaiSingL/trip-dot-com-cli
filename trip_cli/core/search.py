@@ -26,7 +26,7 @@ class HotelSearchRequest:
     max_price: int | None = None
     sort: str = "price"
     max_results: int = 10
-    currency: str = "USD"
+    currency: str = "HKD"
     language: str = "en-us"
 
     def validate(self) -> None:
@@ -70,7 +70,7 @@ def build_search_url(city: str, checkin: str, checkout: str, **extra) -> str:
             "adult": str(extra.get("adults", 2)),
             "children": str(extra.get("children", 0)),
             "ages": "",
-            "curr": extra.get("currency", "USD"),
+            "curr": extra.get("currency", "HKD"),
         }
         qs = urllib.parse.urlencode(params)
         return f"{base}?{qs}"
@@ -81,7 +81,7 @@ def build_search_url(city: str, checkin: str, checkout: str, **extra) -> str:
         params = {
             "checkin": checkin.replace("-", "/"),
             "checkout": checkout.replace("-", "/"),
-            "curr": extra.get("currency", "USD"),
+            "curr": extra.get("currency", "HKD"),
             "adult": str(extra.get("adults", 2)),
             "children": str(extra.get("children", 0)),
             "rooms": str(extra.get("rooms", 1)),

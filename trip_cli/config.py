@@ -13,7 +13,7 @@ CONFIG_FILE = CONFIG_DIR / "config.json"
 
 # Sensible defaults
 DEFAULTS: Dict[str, Any] = {
-    "currency": "USD",
+    "currency": "HKD",
     "region": "hk",
 }
 

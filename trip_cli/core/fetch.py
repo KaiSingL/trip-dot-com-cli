@@ -240,7 +240,7 @@ def fetch_destination_suggestions(query: str, max_results: int = 8):
     return suggestions or []
 
 
-def fetch_hotel_details(hotel_id: str, currency: str = "USD", city: str | None = None):
+def fetch_hotel_details(hotel_id: str, currency: str = "HKD", city: str | None = None):
     """Fetch detailed information for a single hotel by its ID.
     If city is provided, uses city-prefixed path (e.g. bangkok-hotel-detail-xxx) which is required to avoid 404.
     """

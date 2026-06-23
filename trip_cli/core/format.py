@@ -6,7 +6,7 @@ import re
 from typing import Any
 
 
-def _to_usd(price_text: str | None, currency: str = "USD") -> float | None:
+def _to_usd(price_text: str | None, currency: str = "HKD") -> float | None:
     """Very rough conversion stub. For real use, integrate rates or use Trip's currency selection."""
     if not price_text:
         return None
@@ -59,7 +59,7 @@ def normalize_hotel(raw: dict[str, Any]) -> dict[str, Any]:
         "name": clean_name,
         "price_text": price_text,
         "price_usd": price_usd,
-        "currency": raw.get("currency", "USD"),
+        "currency": raw.get("currency", "HKD"),
         "rating": rating,
         "stars": stars,
         "location": raw.get("location") or raw.get("area"),
