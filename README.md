@@ -108,12 +108,20 @@ trip-cli --json destination search "bali"
 | `--adults`        | Number of adults                         | 2           |
 | `--children`      | Number of children                       | 0           |
 | `--rooms`         | Number of rooms                          | 1           |
-| `--stars`         | Minimum star rating (`3`, `4`, `5`, `any`) | any       |
-| `--max-price`     | Maximum price per night                  | —           |
-| `--sort`          | Sort order (`price`, `rating`, `popularity`) | price    |
-| `--max-results`   | Maximum number of results                | 10          |
-| `--currency`      | Display currency (falls back to config)  | HKD         |
-| `--json`          | Output machine-readable JSON             | —           |
+| `--stars`              | Minimum star rating (`3`, `4`, `5`, `any`) | any       |
+| `--min-price`          | Minimum price per night                  | —           |
+| `--max-price`          | Maximum price per night                  | —           |
+| `--min-rating`         | Minimum guest rating (e.g. `8.0`)        | —           |
+| `--breakfast`          | Only hotels with breakfast included      | false     |
+| `--free-cancellation`  | Only hotels with free cancellation       | false     |
+| `--wifi`               | Only hotels with WiFi                    | false     |
+| `--pool`               | Only hotels with swimming pool           | false     |
+| `--parking`            | Only hotels with parking                 | false     |
+| `--min-reviews`        | Minimum number of reviews                | —           |
+| `--sort`               | Sort order (`price`, `rating`, `distance`, `popularity`) | price |
+| `--max-results`        | Maximum number of results                | 10        |
+| `--currency`           | Display currency (falls back to config)  | HKD       |
+| `--json`               | Output machine-readable JSON             | —         |
 
 ### `url`
 
