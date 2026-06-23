@@ -11,6 +11,8 @@ from typing import Any
 
 from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeout
 
+from trip_cli.config import get_trip_domain
+
 
 def _parse_price_text(text: str | None) -> float | None:
     """Extract numeric price from various formats like '$128', 'USD 128', '128.00'."""
@@ -60,8 +62,8 @@ def fetch_hotels(
         page = context.new_page()
 
         try:
-            # Always prefer direct URL (sg.trip.com with slug-id works reliably)
-            target = search_url or "https://sg.trip.com/hotels/"
+            # Always prefer direct URL (regional Trip.com with slug-id works reliably)
+            target = search_url or f"https://{get_trip_domain()}/hotels/"
             page.goto(target, wait_until="domcontentloaded", timeout=timeout_ms)
             page.wait_for_timeout(1800)
 
@@ -168,7 +170,7 @@ def fetch_destination_suggestions(query: str, max_results: int = 8):
         page = context.new_page()
 
         try:
-            page.goto("https://sg.trip.com/hotels/", timeout=30000)
+            page.goto(f"https://{get_trip_domain()}/hotels/", timeout=30000)
             page.wait_for_timeout(800)
 
             # Find and interact with the destination input
@@ -242,14 +244,15 @@ def fetch_hotel_details(hotel_id: str, currency: str = "USD", city: str | None =
     """Fetch detailed information for a single hotel by its ID.
     If city is provided, uses city-prefixed path (e.g. bangkok-hotel-detail-xxx) which is required to avoid 404.
     """
+    domain = get_trip_domain()
     if city:
         from trip_cli.core.search import resolve_city
         info = resolve_city(city)
         cslug = info.get("slug", city.strip().lower().replace(" ", "-"))
-        url = f"https://sg.trip.com/hotels/{cslug}-hotel-detail-{hotel_id}/?curr={currency}"
+        url = f"https://{domain}/hotels/{cslug}-hotel-detail-{hotel_id}/?curr={currency}"
     else:
         # Bare form often 404s on Trip.com; prefer passing --city or use full URL from search results
-        url = f"https://sg.trip.com/hotels/hotel-detail-{hotel_id}/?curr={currency}"
+        url = f"https://{domain}/hotels/hotel-detail-{hotel_id}/?curr={currency}"
 
     details = {"hotel_id": hotel_id, "url": url, "currency": currency}
 

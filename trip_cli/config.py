@@ -14,6 +14,7 @@ CONFIG_FILE = CONFIG_DIR / "config.json"
 # Sensible defaults
 DEFAULTS: Dict[str, Any] = {
     "currency": "USD",
+    "region": "hk",
 }
 
 
@@ -71,3 +72,14 @@ def unset_config_value(key: str) -> None:
 def list_config() -> Dict[str, Any]:
     """Return the full merged config."""
     return load_config()
+
+
+def get_trip_domain() -> str:
+    """Return the Trip.com regional domain based on config (e.g. hk.trip.com)."""
+    region = str(get_config_value("region", "hk")).strip().lower()
+    if not region or region in {"global", "www", "com"}:
+        return "www.trip.com"
+    # Allow user to set full domain like "hk.trip.com" or just "hk"
+    if "." in region:
+        return region
+    return f"{region}.trip.com"

@@ -7,6 +7,7 @@ import urllib.parse
 from dataclasses import dataclass, field
 from typing import Any
 
+from trip_cli.config import get_trip_domain
 from trip_cli.core.fetch import fetch_hotels, fetch_destination_suggestions, fetch_hotel_details
 from trip_cli.core.format import normalize_hotel
 
@@ -58,7 +59,7 @@ def build_search_url(city: str, checkin: str, checkout: str, **extra) -> str:
     if cid:
         suffix = f"{slug}-hotels-list-{cid}"
 
-    base = f"https://sg.trip.com/hotels/{suffix}"
+    base = f"https://{get_trip_domain()}/hotels/{suffix}"
 
     params = {
         "checkin": checkin.replace("-", "/"),

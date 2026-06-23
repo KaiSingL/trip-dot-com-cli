@@ -66,7 +66,7 @@ Emit the exact search URL to open in a browser for verification.
       "rating": 8.9,
       "stars": 4,
       "hotel_id": "123456",
-      "url": "https://sg.trip.com/..."
+      "url": "https://hk.trip.com/..."
     }
   ]
 }

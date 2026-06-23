@@ -210,7 +210,9 @@ def destination_search(query: str, limit: int) -> None:
 @click.option("--checkin", default=None)
 @click.option("--checkout", default=None)
 def build_url(city: str, checkin: str | None, checkout: str | None) -> None:
-    """Print the Trip.com search URL for the given parameters (for debugging / verification)."""
+    """Print the Trip.com search URL for the given parameters (for debugging / verification).
+    Uses the configured region (default hk.trip.com). Change with: trip-cli config set region sg
+    """
     if not checkin or not checkout:
         checkin, checkout = _default_dates()
     from trip_cli.core.search import build_search_url

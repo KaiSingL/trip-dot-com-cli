@@ -146,7 +146,7 @@ Trip.com Hotel Search
   Guests: 2 adults, 0 children | Rooms: 1+
   Cheapest seen: ~$1517
   Results: 3
-  View: https://sg.trip.com/...
+  View: https://hk.trip.com/...
 
  #     PRICE   RATING  STARS  NAME
  1    $1517    9.7      5★   Raffles Singapore
@@ -176,7 +176,7 @@ Trip.com Hotel Search
       "rating": 9.7,
       "stars": 5,
       "hotel_id": "687474",
-      "url": "https://sg.trip.com/hotels/..."
+      "url": "https://hk.trip.com/hotels/..."
     }
   ]
 }

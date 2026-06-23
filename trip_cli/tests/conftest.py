@@ -10,7 +10,7 @@ MOCK_RAW_HOTELS = [
         "stars": None,
         "location": "Singapore",
         "hotel_id": "687474",
-        "url": "https://sg.trip.com/hotels/singapore-hotel-detail-687474/raffles-singapore/",
+        "url": "https://hk.trip.com/hotels/singapore-hotel-detail-687474/raffles-singapore/",
     },
     {
         "name": "Grand Hyatt Singapore",
@@ -19,7 +19,7 @@ MOCK_RAW_HOTELS = [
         "stars": 5,
         "location": "Singapore",
         "hotel_id": "12345",
-        "url": "https://sg.trip.com/hotels/singapore-hotel-detail-12345/grand-hyatt/",
+        "url": "https://hk.trip.com/hotels/singapore-hotel-detail-12345/grand-hyatt/",
     },
     {
         "name": "Budget Inn",
@@ -33,7 +33,7 @@ MOCK_RAW_HOTELS = [
 ]
 
 MOCK_SEARCH_RESULT = {
-    "search_url": "https://sg.trip.com/hotels/singapore-hotels-list-73/?checkin=2026/07/15&checkout=2026/07/18&curr=USD",
+    "search_url": "https://hk.trip.com/hotels/singapore-hotels-list-73/?checkin=2026/07/15&checkout=2026/07/18&curr=USD",
     "query_city": "Singapore",
     "cheapest": 95.0,
     "hotels": [
@@ -47,7 +47,7 @@ MOCK_SEARCH_RESULT = {
             "stars": 5,
             "location": "Singapore",
             "hotel_id": "687474",
-            "url": "https://sg.trip.com/hotels/singapore-hotel-detail-687474/raffles-singapore/",
+            "url": "https://hk.trip.com/hotels/singapore-hotel-detail-687474/raffles-singapore/",
         },
         {
             "rank": None,
@@ -59,7 +59,7 @@ MOCK_SEARCH_RESULT = {
             "stars": 5,
             "location": "Singapore",
             "hotel_id": "12345",
-            "url": "https://sg.trip.com/hotels/singapore-hotel-detail-12345/grand-hyatt/",
+            "url": "https://hk.trip.com/hotels/singapore-hotel-detail-12345/grand-hyatt/",
         },
     ],
 }
@@ -78,7 +78,7 @@ def mock_search_result():
 @pytest.fixture
 def mock_config(monkeypatch):
     """In-memory config for testing. Replaces the real config functions."""
-    cfg = {"currency": "USD"}
+    cfg = {"currency": "USD", "region": "hk"}
 
     def fake_get(key, default=None):
         if key in cfg:
@@ -86,6 +86,8 @@ def mock_config(monkeypatch):
         # Mimic real behavior: fall back to module DEFAULTS
         if key == "currency":
             return default or "USD"
+        if key == "region":
+            return default or "hk"
         return default
 
     def fake_set(key, value):
@@ -101,5 +103,9 @@ def mock_config(monkeypatch):
     monkeypatch.setattr("trip_cli.cli.set_config_value", fake_set)
     monkeypatch.setattr("trip_cli.cli.unset_config_value", fake_unset)
     monkeypatch.setattr("trip_cli.cli.list_config", fake_list)
+
+    # Also patch for core modules that read region/domain
+    monkeypatch.setattr("trip_cli.config.get_config_value", fake_get)
+    monkeypatch.setattr("trip_cli.config.get_trip_domain", lambda: f"{cfg.get('region', 'hk')}.trip.com")
 
     return cfg
