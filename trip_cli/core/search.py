@@ -24,6 +24,8 @@ class HotelSearchRequest:
     rooms: int = 1
     min_stars: int | None = None
     max_price: int | None = None
+    min_price: int | None = None
+    min_rating: float | None = None
     sort: str = "price"
     max_results: int = 10
     currency: str = "HKD"
@@ -44,6 +46,10 @@ class HotelSearchRequest:
             raise ValueError("max_results >= 1")
         if self.min_stars is not None and not (1 <= self.min_stars <= 5):
             raise ValueError("min_stars must be 1-5")
+        if self.min_price is not None and self.min_price < 0:
+            raise ValueError("min_price must be >= 0")
+        if self.min_rating is not None and not (0 <= self.min_rating <= 10):
+            raise ValueError("min_rating must be 0-10")
 
 
 def build_search_url(city: str, checkin: str, checkout: str, **extra) -> str:
@@ -72,6 +78,15 @@ def build_search_url(city: str, checkin: str, checkout: str, **extra) -> str:
             "ages": "",
             "curr": extra.get("currency", "HKD"),
         }
+
+        # Additional filters (Trip.com may support or ignore)
+        if extra.get("min_price") is not None:
+            params["minPrice"] = str(extra["min_price"])
+        if extra.get("max_price") is not None:
+            params["maxPrice"] = str(extra["max_price"])
+        if extra.get("min_rating") is not None:
+            params["score"] = str(int(extra["min_rating"] * 10))
+
         qs = urllib.parse.urlencode(params)
         return f"{base}?{qs}"
     else:
@@ -86,6 +101,12 @@ def build_search_url(city: str, checkin: str, checkout: str, **extra) -> str:
             "children": str(extra.get("children", 0)),
             "rooms": str(extra.get("rooms", 1)),
         }
+
+        if extra.get("min_price") is not None:
+            params["minPrice"] = str(extra["min_price"])
+        if extra.get("max_price") is not None:
+            params["maxPrice"] = str(extra["max_price"])
+
         qs = urllib.parse.urlencode(params)
         return f"{base}/?{qs}"
 
@@ -105,6 +126,7 @@ def resolve_city(city: str) -> dict[str, Any]:
         "hongkong": {"display": "Hong Kong", "slug": "hong-kong", "id": "58"},
         "bangkok": {"display": "Bangkok", "slug": "bangkok", "id": "359"},
         "seoul": {"display": "Seoul", "slug": "seoul", "id": "274"},
+        "fukuoka": {"display": "Fukuoka", "slug": "fukuoka", "id": "248"},
         "dubai": {"display": "Dubai", "slug": "dubai", "id": "1174"},
         "bali": {"display": "Bali", "slug": "bali", "id": "723"},
         "kuala lumpur": {"display": "Kuala Lumpur", "slug": "kuala-lumpur", "id": "315"},
@@ -136,6 +158,8 @@ def run_hotel_search(req: HotelSearchRequest) -> dict[str, Any]:
         children=req.children,
         rooms=req.rooms,
         currency=req.currency,
+        min_price=req.min_price,
+        min_rating=req.min_rating,
     )
 
     raw_hotels = fetch_hotels(
@@ -157,6 +181,10 @@ def run_hotel_search(req: HotelSearchRequest) -> dict[str, Any]:
         hotels = [h for h in hotels if (h.get("stars") or 0) >= req.min_stars]
     if req.max_price:
         hotels = [h for h in hotels if (h.get("price_usd") or 999999) <= req.max_price]
+    if req.min_price:
+        hotels = [h for h in hotels if (h.get("price_usd") or 0) >= req.min_price]
+    if req.min_rating:
+        hotels = [h for h in hotels if (h.get("rating") or 0) >= req.min_rating]
 
     # Basic sort client side for cases where server sort not perfect
     if req.sort == "price":

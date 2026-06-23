@@ -82,7 +82,9 @@ def hotel() -> None:
 @click.option("--children", default=0, show_default=True, help="Number of children.")
 @click.option("--rooms", default=1, show_default=True, help="Number of rooms.")
 @click.option("--stars", type=click.Choice(["3", "4", "5", "any"]), default="any", help="Minimum star rating filter.")
+@click.option("--min-price", type=int, default=None, help="Minimum price per night.")
 @click.option("--max-price", type=int, default=None, help="Max price per night (in local currency or USD).")
+@click.option("--min-rating", type=float, default=None, help="Minimum guest rating (e.g. 8.0 for 8+).")
 @click.option("--sort", type=click.Choice(["price", "rating", "distance", "popularity"]), default="price", show_default=True)
 @click.option("--max-results", default=10, show_default=True, help="Limit number of results.")
 @click.option("--currency", default=None, help="Preferred currency for prices (e.g. HKD, USD, SGD, JPY). Falls back to config.")
@@ -95,7 +97,9 @@ def hotel_search(
     children: int,
     rooms: int,
     stars: str,
+    min_price: int | None,
     max_price: int | None,
+    min_rating: float | None,
     sort: str,
     max_results: int,
     currency: str,
@@ -115,7 +119,9 @@ def hotel_search(
         children=children,
         rooms=rooms,
         min_stars=None if stars == "any" else int(stars),
+        min_price=min_price,
         max_price=max_price,
+        min_rating=min_rating,
         sort=sort,
         max_results=max_results,
         currency=currency,
@@ -133,6 +139,10 @@ def hotel_search(
             "rooms": rooms,
             "currency": currency,
             "sort": sort,
+            "min_price": min_price,
+            "max_price": max_price,
+            "min_rating": min_rating,
+            "min_stars": None if stars == "any" else int(stars),
         },
         "summary": {
             "count": len(results.get("hotels", [])),
