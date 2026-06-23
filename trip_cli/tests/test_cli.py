@@ -108,3 +108,104 @@ def test_main_entrypoint(runner):
     """Sanity check that the CLI can be invoked."""
     result = runner.invoke(cli, ["--help"])
     assert "hotel" in result.output or "Trip.com" in result.output
+
+
+class TestConfigCli:
+    def test_config_set_get_list_unset(self, runner, mock_config):
+        # Set
+        result = runner.invoke(cli, ["config", "set", "currency", "SGD"])
+        assert result.exit_code == 0
+        assert "Set currency = SGD" in result.output
+
+        # Get
+        result = runner.invoke(cli, ["config", "get", "currency"])
+        assert result.exit_code == 0
+        assert "currency = SGD" in result.output
+
+        # List
+        result = runner.invoke(cli, ["config", "list"])
+        assert result.exit_code == 0
+        assert "currency = SGD" in result.output
+
+        # Unset
+        result = runner.invoke(cli, ["config", "unset", "currency"])
+        assert result.exit_code == 0
+        assert "Unset currency" in result.output
+
+        # After unset, should fall back to default
+        result = runner.invoke(cli, ["config", "get", "currency"])
+        assert result.exit_code == 0
+        assert "currency = USD" in result.output  # from DEFAULTS in the mock
+
+
+class TestCurrencyFromConfig:
+    def test_search_uses_config_currency_when_not_provided(self, runner, monkeypatch, mock_search_result, mock_config):
+        captured_currency = {}
+
+        def fake_run(req: HotelSearchRequest):
+            captured_currency["value"] = req.currency
+            return mock_search_result
+
+        monkeypatch.setattr("trip_cli.cli.run_hotel_search", fake_run)
+
+        # Set config
+        mock_config["currency"] = "EUR"
+
+        result = runner.invoke(
+            cli,
+            [
+                "hotel",
+                "search",
+                "--city",
+                "Singapore",
+                "--checkin",
+                "2026-07-15",
+                "--checkout",
+                "2026-07-18",
+            ],
+        )
+        assert result.exit_code == 0
+        assert captured_currency["value"] == "EUR"
+
+    def test_details_uses_config_currency_when_not_provided(self, runner, monkeypatch, mock_config):
+        captured = {}
+
+        def fake_get_details(hid, cur):
+            captured["currency"] = cur
+            return {"name": "Test Hotel", "hotel_id": hid, "currency": cur}
+
+        monkeypatch.setattr("trip_cli.cli.get_hotel_details", fake_get_details)
+
+        mock_config["currency"] = "JPY"
+
+        result = runner.invoke(cli, ["hotel", "details", "12345"])
+        assert result.exit_code == 0
+        assert captured["currency"] == "JPY"
+
+    def test_search_overrides_config_with_flag(self, runner, monkeypatch, mock_search_result, mock_config):
+        captured = {}
+
+        def fake_run(req: HotelSearchRequest):
+            captured["currency"] = req.currency
+            return mock_search_result
+
+        monkeypatch.setattr("trip_cli.cli.run_hotel_search", fake_run)
+        mock_config["currency"] = "EUR"
+
+        result = runner.invoke(
+            cli,
+            [
+                "hotel",
+                "search",
+                "--city",
+                "Singapore",
+                "--checkin",
+                "2026-07-15",
+                "--checkout",
+                "2026-07-18",
+                "--currency",
+                "HKD",
+            ],
+        )
+        assert result.exit_code == 0
+        assert captured["currency"] == "HKD"

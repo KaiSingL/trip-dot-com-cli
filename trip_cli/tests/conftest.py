@@ -73,3 +73,33 @@ def mock_raw_hotels():
 @pytest.fixture
 def mock_search_result():
     return MOCK_SEARCH_RESULT
+
+
+@pytest.fixture
+def mock_config(monkeypatch):
+    """In-memory config for testing. Replaces the real config functions."""
+    cfg = {"currency": "USD"}
+
+    def fake_get(key, default=None):
+        if key in cfg:
+            return cfg[key]
+        # Mimic real behavior: fall back to module DEFAULTS
+        if key == "currency":
+            return default or "USD"
+        return default
+
+    def fake_set(key, value):
+        cfg[key] = value
+
+    def fake_unset(key):
+        cfg.pop(key, None)
+
+    def fake_list():
+        return cfg.copy()
+
+    monkeypatch.setattr("trip_cli.cli.get_config_value", fake_get)
+    monkeypatch.setattr("trip_cli.cli.set_config_value", fake_set)
+    monkeypatch.setattr("trip_cli.cli.unset_config_value", fake_unset)
+    monkeypatch.setattr("trip_cli.cli.list_config", fake_list)
+
+    return cfg

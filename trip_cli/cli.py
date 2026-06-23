@@ -10,9 +10,17 @@ from datetime import datetime, timedelta
 import click
 
 from trip_cli.core.format import render_hotel_table
+from trip_cli.config import (
+    get_config_value,
+    set_config_value,
+    unset_config_value,
+    list_config,
+)
 from trip_cli.core.search import (
     HotelSearchRequest,
     run_hotel_search,
+    search_destinations,
+    get_hotel_details,
 )
 
 _json_output = False
@@ -77,7 +85,7 @@ def hotel() -> None:
 @click.option("--max-price", type=int, default=None, help="Max price per night (in local currency or USD).")
 @click.option("--sort", type=click.Choice(["price", "rating", "distance", "popularity"]), default="price", show_default=True)
 @click.option("--max-results", default=10, show_default=True, help="Limit number of results.")
-@click.option("--currency", default="USD", show_default=True, help="Preferred currency for prices (e.g. USD, SGD, JPY).")
+@click.option("--currency", default=None, help="Preferred currency for prices (e.g. USD, SGD, JPY). Falls back to config.")
 @handle_error
 def hotel_search(
     city: str,
@@ -95,6 +103,9 @@ def hotel_search(
     """Search hotels on Trip.com."""
     if not checkin or not checkout:
         checkin, checkout = _default_dates()
+
+    if currency is None:
+        currency = get_config_value("currency", "USD")
 
     req = HotelSearchRequest(
         city=city,
@@ -134,6 +145,65 @@ def hotel_search(
     emit(payload, lambda d: render_hotel_table(d))
 
 
+@hotel.command("details")
+@click.argument("hotel_id")
+@click.option("--currency", default=None, help="Preferred currency for prices (e.g. USD, SGD, JPY). Falls back to config.")
+@handle_error
+def hotel_details(hotel_id: str, currency: str) -> None:
+    """Get detailed information about a specific hotel."""
+    if currency is None:
+        currency = get_config_value("currency", "USD")
+
+    details = get_hotel_details(hotel_id, currency)
+
+    if _json_output:
+        click.echo(json.dumps(details, indent=2, default=str))
+        return
+
+    click.echo(f"Hotel: {details.get('name', hotel_id)} (currency: {currency})")
+    if details.get("rating"):
+        click.echo(f"  Rating: {details['rating']} ({details.get('review_count', 'N/A')})")
+    if details.get("address"):
+        click.echo(f"  Address: {details['address']}")
+    if details.get("amenities"):
+        click.echo("  Key Amenities:")
+        for a in details["amenities"][:10]:
+            click.echo(f"    • {a}")
+    if details.get("description"):
+        desc = details["description"][:280] + "..." if len(details.get("description", "")) > 280 else details.get("description")
+        click.echo(f"  Description: {desc}")
+    click.echo(f"  Source: {details.get('url')}")
+
+
+@cli.group()
+def destination() -> None:
+    """Destination and city lookup commands."""
+
+
+@destination.command("search")
+@click.argument("query")
+@click.option("--limit", default=8, show_default=True)
+@handle_error
+def destination_search(query: str, limit: int) -> None:
+    """Search for cities, areas or hotels by name."""
+    results = search_destinations(query, limit)
+
+    payload = {"query": query, "results": results}
+
+    if _json_output:
+        click.echo(json.dumps(payload, indent=2))
+        return
+
+    if not results:
+        click.echo(f"No suggestions found for '{query}'.")
+        return
+
+    click.echo(f"Suggestions for '{query}':")
+    for r in results:
+        extra = f" (id={r.get('id')})" if r.get("id") else ""
+        click.echo(f"  {r.get('name')}{extra}")
+
+
 @cli.command("url")
 @click.option("--city", required=True)
 @click.option("--checkin", default=None)
@@ -154,6 +224,47 @@ def version_cmd() -> None:
     from trip_cli import __version__
 
     click.echo(f"trip-cli {__version__}")
+
+
+@cli.group()
+def config() -> None:
+    """View and modify global configuration."""
+
+
+@config.command("set")
+@click.argument("key")
+@click.argument("value")
+def config_set(key: str, value: str) -> None:
+    """Set a config value (e.g. currency USD)."""
+    set_config_value(key, value)
+    click.echo(f"Set {key} = {value}")
+
+
+@config.command("get")
+@click.argument("key")
+def config_get(key: str) -> None:
+    """Get a config value."""
+    val = get_config_value(key)
+    click.echo(f"{key} = {val}")
+
+
+@config.command("list")
+def config_list_cmd() -> None:
+    """List all config values."""
+    cfg = list_config()
+    if not cfg:
+        click.echo("No configuration set.")
+        return
+    for k, v in sorted(cfg.items()):
+        click.echo(f"{k} = {v}")
+
+
+@config.command("unset")
+@click.argument("key")
+def config_unset(key: str) -> None:
+    """Remove a config value."""
+    unset_config_value(key)
+    click.echo(f"Unset {key}")
 
 
 def main() -> None:

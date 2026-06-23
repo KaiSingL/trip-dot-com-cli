@@ -145,3 +145,168 @@ def fetch_hotels(
             seen.add(key)
             dedup.append(r)
     return dedup[:max_results]
+
+
+def fetch_destination_suggestions(query: str, max_results: int = 8):
+    """Search for destinations, cities or areas on Trip.com."""
+    suggestions = []
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch(
+            headless=True,
+            args=["--disable-blink-features=AutomationControlled", "--no-sandbox"],
+        )
+        context = browser.new_context(
+            user_agent=(
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/126.0.0.0 Safari/537.36"
+            ),
+            viewport={"width": 1280, "height": 720},
+            locale="en-US",
+        )
+        page = context.new_page()
+
+        try:
+            page.goto("https://sg.trip.com/hotels/", timeout=30000)
+            page.wait_for_timeout(800)
+
+            # Find and interact with the destination input
+            input_selectors = [
+                "input[placeholder*='Where' i]",
+                "input[placeholder*='city' i]",
+                "input[placeholder*='destination' i]",
+            ]
+            inp = None
+            for sel in input_selectors:
+                try:
+                    candidate = page.locator(sel).first
+                    if candidate.count() > 0:
+                        inp = candidate
+                        break
+                except:
+                    continue
+
+            if inp:
+                inp.click()
+                inp.fill(query)
+                page.wait_for_timeout(1600)  # Let suggestions load
+
+                # Extract suggestions using JS
+                suggestions = page.evaluate(
+                    f"""() => {{
+                        const results = [];
+                        const selectors = [
+                            '[class*="suggest"]',
+                            '[class*="search-result"]',
+                            '[role="option"]',
+                            '.city-item',
+                            '[data-id]',
+                            '[class*="result-item"]'
+                        ];
+                        let nodes = [];
+                        selectors.forEach(s => {{
+                            nodes = nodes.concat(Array.from(document.querySelectorAll(s)));
+                        }});
+                        nodes.slice(0, 15).forEach(el => {{
+                            const text = (el.innerText || el.textContent || '').trim().split('\\n')[0].slice(0, 90);
+                            if (!text || text.length < 3) return;
+                            const href = el.getAttribute('href') || (el.querySelector('a') ? el.querySelector('a').getAttribute('href') : '');
+                            const idMatch = (href || '').match(/list-(\\d+)/i) || (href || '').match(/detail-(\\d+)/i);
+                            results.push({{
+                                name: text,
+                                id: idMatch ? idMatch[1] : null,
+                                type: href && href.includes('hotel') ? 'hotel' : 'destination',
+                            }});
+                        }});
+                        // Dedup by name
+                        const seen = new Set();
+                        return results.filter(r => {{
+                            if (seen.has(r.name)) return false;
+                            seen.add(r.name);
+                            return true;
+                        }}).slice(0, {max_results});
+                    }}"""
+                )
+        except Exception as e:
+            # Fallback to empty on error
+            suggestions = []
+        finally:
+            context.close()
+            browser.close()
+
+    return suggestions or []
+
+
+def fetch_hotel_details(hotel_id: str, currency: str = "USD"):
+    """Fetch detailed information for a single hotel by its ID."""
+    url = f"https://sg.trip.com/hotels/hotel-detail-{hotel_id}/?curr={currency}"
+
+    details = {"hotel_id": hotel_id, "url": url, "currency": currency}
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch(
+            headless=True,
+            args=["--disable-blink-features=AutomationControlled", "--no-sandbox"],
+        )
+        context = browser.new_context(
+            user_agent=(
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/126.0.0.0 Safari/537.36"
+            ),
+            viewport={"width": 1280, "height": 800},
+            locale="en-US",
+        )
+        page = context.new_page()
+
+        try:
+            page.goto(url, timeout=45000)
+            page.wait_for_timeout(2200)
+            page.mouse.wheel(0, 600)  # load more content
+            page.wait_for_timeout(800)
+
+            details = page.evaluate(
+                """(hotelId) => {
+                    const getText = (sel) => {
+                        const el = document.querySelector(sel);
+                        return el ? el.innerText.trim().replace(/\\s+/g, ' ').slice(0, 600) : null;
+                    };
+                    const getList = (sel) => {
+                        return Array.from(document.querySelectorAll(sel))
+                            .map(e => e.innerText.trim())
+                            .filter(t => t.length > 1 && t.length < 80)
+                            .slice(0, 25);
+                    };
+
+                    const name = getText('h1') || getText('[class*="hotelName"], [class*="title"]');
+                    const rating = getText('[class*="score"], [class*="ratingScore"]');
+                    const reviewCount = getText('[class*="review"], [class*="reviewsCount"]');
+
+                    const address = getText('[class*="address"], [class*="location"], .map-info');
+                    const desc = getText('.description, [class*="intro"], [class*="about-hotel"]');
+
+                    const amenities = getList('[class*="amenity"], .facility-item, [class*="facility"], [class*="service"]');
+
+                    return {
+                        hotel_id: hotelId,
+                        name: name,
+                        rating: rating,
+                        review_count: reviewCount,
+                        address: address,
+                        description: desc,
+                        amenities: amenities,
+                        url: window.location.href
+                    };
+                }""",
+                hotel_id,
+            )
+        except PlaywrightTimeout as e:
+            details["error"] = f"Timeout loading hotel details: {e}"
+        except Exception as e:
+            details["error"] = str(e)
+        finally:
+            context.close()
+            browser.close()
+
+    return details

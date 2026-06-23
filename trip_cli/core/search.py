@@ -7,7 +7,7 @@ import urllib.parse
 from dataclasses import dataclass, field
 from typing import Any
 
-from trip_cli.core.fetch import fetch_hotels
+from trip_cli.core.fetch import fetch_hotels, fetch_destination_suggestions, fetch_hotel_details
 from trip_cli.core.format import normalize_hotel
 
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
@@ -150,3 +150,13 @@ def run_hotel_search(req: HotelSearchRequest) -> dict[str, Any]:
         "cheapest": cheapest,
         "hotels": hotels,
     }
+
+
+def search_destinations(query: str, max_results: int = 8):
+    """High-level wrapper for destination/city suggestions."""
+    return fetch_destination_suggestions(query, max_results)
+
+
+def get_hotel_details(hotel_id: str, currency: str = "USD"):
+    """High-level wrapper for fetching a single hotel's details."""
+    return fetch_hotel_details(hotel_id, currency)

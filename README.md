@@ -79,6 +79,24 @@ trip-cli url --city "Bangkok" --checkin 2026-08-05 --checkout 2026-08-08
 
 Search for hotels.
 
+### `hotel details <hotel-id>`
+
+Get rich details for one hotel (supports `--currency`):
+
+```powershell
+trip-cli hotel details 687474
+trip-cli --json hotel details 687474 --currency SGD
+```
+
+### `destination search <query>`
+
+Find cities or areas (helps with better matching):
+
+```powershell
+trip-cli destination search "tokyo"
+trip-cli --json destination search "bali"
+```
+
 **Required:**
 - `--city` — City or destination name (e.g. "Singapore", "Tokyo", "New York")
 
@@ -94,12 +112,29 @@ Search for hotels.
 | `--max-price`     | Maximum price per night                  | —           |
 | `--sort`          | Sort order (`price`, `rating`, `popularity`) | price    |
 | `--max-results`   | Maximum number of results                | 10          |
-| `--currency`      | Display currency                         | USD         |
+| `--currency`      | Display currency (falls back to config)  | USD         |
 | `--json`          | Output machine-readable JSON             | —           |
 
 ### `url`
 
 Generate a Trip.com hotel search URL (useful for verification or sharing).
+
+### Global Config
+
+You can set persistent defaults that are used when you don't pass the flag:
+
+```powershell
+trip-cli config set currency SGD
+trip-cli config set default-city "Singapore"
+
+trip-cli config list
+trip-cli config get currency
+trip-cli config unset currency
+```
+
+Supported keys:
+- `currency` — default for `hotel search` and `hotel details`
+- (more coming)
 
 ## Output Formats
 
