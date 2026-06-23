@@ -170,7 +170,7 @@ class TestCurrencyFromConfig:
     def test_details_uses_config_currency_when_not_provided(self, runner, monkeypatch, mock_config):
         captured = {}
 
-        def fake_get_details(hid, cur):
+        def fake_get_details(hid, cur, city=None):
             captured["currency"] = cur
             return {"name": "Test Hotel", "hotel_id": hid, "currency": cur}
 

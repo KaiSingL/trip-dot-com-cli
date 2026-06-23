@@ -34,7 +34,7 @@ class TestBuildSearchUrl:
 
     def test_unknown_city_url(self):
         url = build_search_url("Bali", "2026-08-01", "2026-08-05", currency="SGD")
-        assert "bali-hotels-list-1249" in url
+        assert "bali-hotels-list-723" in url
         assert "curr=SGD" in url
 
 

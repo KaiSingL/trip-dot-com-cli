@@ -87,9 +87,18 @@ def resolve_city(city: str) -> dict[str, Any]:
         "hong kong": {"display": "Hong Kong", "slug": "hong-kong", "id": "58"},
         "hongkong": {"display": "Hong Kong", "slug": "hong-kong", "id": "58"},
         "bangkok": {"display": "Bangkok", "slug": "bangkok", "id": "359"},
-        "seoul": {"display": "Seoul", "slug": "seoul", "id": "237"},
+        "seoul": {"display": "Seoul", "slug": "seoul", "id": "274"},
         "dubai": {"display": "Dubai", "slug": "dubai", "id": "1174"},
-        "bali": {"display": "Bali", "slug": "bali", "id": "1249"},
+        "bali": {"display": "Bali", "slug": "bali", "id": "723"},
+        "kuala lumpur": {"display": "Kuala Lumpur", "slug": "kuala-lumpur", "id": "315"},
+        "kualalumpur": {"display": "Kuala Lumpur", "slug": "kuala-lumpur", "id": "315"},
+        "phuket": {"display": "Phuket", "slug": "phuket", "id": "725"},
+        "jakarta": {"display": "Jakarta", "slug": "jakarta", "id": "524"},
+        "chiang mai": {"display": "Chiang Mai", "slug": "chiang-mai", "id": "623"},
+        "chiangmai": {"display": "Chiang Mai", "slug": "chiang-mai", "id": "623"},
+        "ho chi minh": {"display": "Ho Chi Minh City", "slug": "ho-chi-minh-city", "id": "301"},
+        "ho chi minh city": {"display": "Ho Chi Minh City", "slug": "ho-chi-minh-city", "id": "301"},
+        "hcmc": {"display": "Ho Chi Minh City", "slug": "ho-chi-minh-city", "id": "301"},
     }
     if c in known:
         return known[c]
@@ -157,6 +166,6 @@ def search_destinations(query: str, max_results: int = 8):
     return fetch_destination_suggestions(query, max_results)
 
 
-def get_hotel_details(hotel_id: str, currency: str = "USD"):
+def get_hotel_details(hotel_id: str, currency: str = "USD", city: str | None = None):
     """High-level wrapper for fetching a single hotel's details."""
-    return fetch_hotel_details(hotel_id, currency)
+    return fetch_hotel_details(hotel_id, currency, city=city)

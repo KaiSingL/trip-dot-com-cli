@@ -238,9 +238,18 @@ def fetch_destination_suggestions(query: str, max_results: int = 8):
     return suggestions or []
 
 
-def fetch_hotel_details(hotel_id: str, currency: str = "USD"):
-    """Fetch detailed information for a single hotel by its ID."""
-    url = f"https://sg.trip.com/hotels/hotel-detail-{hotel_id}/?curr={currency}"
+def fetch_hotel_details(hotel_id: str, currency: str = "USD", city: str | None = None):
+    """Fetch detailed information for a single hotel by its ID.
+    If city is provided, uses city-prefixed path (e.g. bangkok-hotel-detail-xxx) which is required to avoid 404.
+    """
+    if city:
+        from trip_cli.core.search import resolve_city
+        info = resolve_city(city)
+        cslug = info.get("slug", city.strip().lower().replace(" ", "-"))
+        url = f"https://sg.trip.com/hotels/{cslug}-hotel-detail-{hotel_id}/?curr={currency}"
+    else:
+        # Bare form often 404s on Trip.com; prefer passing --city or use full URL from search results
+        url = f"https://sg.trip.com/hotels/hotel-detail-{hotel_id}/?curr={currency}"
 
     details = {"hotel_id": hotel_id, "url": url, "currency": currency}
 

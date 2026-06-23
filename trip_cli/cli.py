@@ -148,13 +148,14 @@ def hotel_search(
 @hotel.command("details")
 @click.argument("hotel_id")
 @click.option("--currency", default=None, help="Preferred currency for prices (e.g. USD, SGD, JPY). Falls back to config.")
+@click.option("--city", default=None, help="City slug for correct hotel detail URL (e.g. Bangkok, 'Kuala Lumpur'). Prevents 404 on direct links.")
 @handle_error
-def hotel_details(hotel_id: str, currency: str) -> None:
+def hotel_details(hotel_id: str, currency: str, city: str | None) -> None:
     """Get detailed information about a specific hotel."""
     if currency is None:
         currency = get_config_value("currency", "USD")
 
-    details = get_hotel_details(hotel_id, currency)
+    details = get_hotel_details(hotel_id, currency, city=city)
 
     if _json_output:
         click.echo(json.dumps(details, indent=2, default=str))
