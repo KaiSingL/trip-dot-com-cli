@@ -169,15 +169,33 @@ For production-scale use, consider commercial solutions such as Oxylabs Trip Scr
 ## Development
 
 ```powershell
-# Install dev dependencies
+# Install in editable mode with dev dependencies
 pip install -e ".[dev]"
 
-# Run (after changes)
+# Run the CLI
 python -m trip_cli --help
-
-# When tests are added
-python -m pytest trip_cli/tests -v
 ```
+
+## Testing
+
+```powershell
+# Install dev extras
+pip install -e ".[dev]"
+
+# Run unit tests (fast, no network)
+python -m pytest trip_cli/tests -v
+
+# Run live E2E tests (hits real Trip.com — use sparingly)
+$env:TRIP_RUN_LIVE='1'
+python -m pytest trip_cli/tests/test_e2e.py -v -s
+```
+
+Test layout:
+- `test_core.py` — validation, URL building, normalization, table rendering
+- `test_cli.py` — Click commands with mocked backend (CliRunner)
+- `test_e2e.py` — optional real scraping tests (gated by `TRIP_RUN_LIVE=1`)
+
+All core logic is unit-testable because `run_hotel_search` and `fetch_hotels` can be monkey-patched.
 
 ## Project Structure
 
@@ -192,10 +210,14 @@ trip-dot-com-cli/
 │   ├── cli.py
 │   ├── __init__.py
 │   ├── __main__.py
-│   └── core/
-│       ├── search.py
-│       ├── fetch.py
-│       └── format.py
+│   ├── core/
+│   │   ├── search.py
+│   │   ├── fetch.py
+│   │   └── format.py
+│   └── tests/
+│       ├── test_core.py
+│       ├── test_cli.py
+│       └── test_e2e.py
 ├── skills/
 │   └── trip-cli/
 │       └── SKILL.md          # Agent skill definition

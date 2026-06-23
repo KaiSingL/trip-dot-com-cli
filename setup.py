@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""setup.py for trip-cli (Trip.com CLI)."""
+"""setup.py for trip-cli (Trip.com hotels CLI)."""
 
 from setuptools import find_packages, setup
 
@@ -16,7 +16,10 @@ setup(
         "typing_extensions>=4.0.0",
     ],
     extras_require={
-        "dev": ["pytest>=7.0.0"],
+        "dev": [
+            "pytest>=7.0.0",
+            # Optional: "pytest-mock", "pytest-cov"
+        ],
     },
     # entry_points omitted for Windows robustness (script generation flakiness).
     # Launcher: scripts/trip-cli.cmd  or use `python -m trip_cli`
