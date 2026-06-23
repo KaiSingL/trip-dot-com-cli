@@ -30,10 +30,15 @@ def normalize_hotel(raw: dict[str, Any]) -> dict[str, Any]:
     price_text = raw.get("price_text") or raw.get("price")
     price_usd = _to_usd(price_text)
 
-    rating = raw.get("rating_text") or raw.get("rating")
-    if isinstance(rating, str):
-        m = re.search(r"(\d+(\.\d+)?)", rating)
+    rating_text = raw.get("rating_text") or raw.get("rating")
+    review_count = None
+    rating = rating_text
+    if isinstance(rating_text, str):
+        m = re.search(r"(\d+(\.\d+)?)", rating_text)
         rating = float(m.group(1)) if m else None
+        rc_match = re.search(r"\((\d[\d,]*)\s*(reviews?|评论)\)", rating_text, re.I)
+        if rc_match:
+            review_count = int(rc_match.group(1).replace(",", ""))
     try:
         rating = float(rating) if rating else None
     except (TypeError, ValueError):
@@ -65,6 +70,12 @@ def normalize_hotel(raw: dict[str, Any]) -> dict[str, Any]:
         "location": raw.get("location") or raw.get("area"),
         "hotel_id": raw.get("hotel_id"),
         "url": raw.get("url"),
+        "breakfast": bool(raw.get("breakfast")),
+        "wifi": bool(raw.get("wifi")),
+        "pool": bool(raw.get("pool")),
+        "parking": bool(raw.get("parking")),
+        "free_cancellation": bool(raw.get("free_cancellation")),
+        "review_count": review_count,
     }
 
 

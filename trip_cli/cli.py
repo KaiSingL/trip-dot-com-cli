@@ -85,6 +85,12 @@ def hotel() -> None:
 @click.option("--min-price", type=int, default=None, help="Minimum price per night.")
 @click.option("--max-price", type=int, default=None, help="Max price per night (in local currency or USD).")
 @click.option("--min-rating", type=float, default=None, help="Minimum guest rating (e.g. 8.0 for 8+).")
+@click.option("--breakfast", is_flag=True, default=False, help="Only hotels with breakfast included.")
+@click.option("--free-cancellation", is_flag=True, default=False, help="Only hotels with free cancellation.")
+@click.option("--wifi", is_flag=True, default=False, help="Only hotels with WiFi.")
+@click.option("--pool", is_flag=True, default=False, help="Only hotels with swimming pool.")
+@click.option("--parking", is_flag=True, default=False, help="Only hotels with parking.")
+@click.option("--min-reviews", type=int, default=None, help="Minimum number of reviews.")
 @click.option("--sort", type=click.Choice(["price", "rating", "distance", "popularity"]), default="price", show_default=True)
 @click.option("--max-results", default=10, show_default=True, help="Limit number of results.")
 @click.option("--currency", default=None, help="Preferred currency for prices (e.g. HKD, USD, SGD, JPY). Falls back to config.")
@@ -100,6 +106,12 @@ def hotel_search(
     min_price: int | None,
     max_price: int | None,
     min_rating: float | None,
+    breakfast: bool,
+    free_cancellation: bool,
+    wifi: bool,
+    pool: bool,
+    parking: bool,
+    min_reviews: int | None,
     sort: str,
     max_results: int,
     currency: str,
@@ -122,6 +134,12 @@ def hotel_search(
         min_price=min_price,
         max_price=max_price,
         min_rating=min_rating,
+        breakfast=breakfast,
+        free_cancellation=free_cancellation,
+        wifi=wifi,
+        pool=pool,
+        parking=parking,
+        min_reviews=min_reviews,
         sort=sort,
         max_results=max_results,
         currency=currency,
@@ -143,6 +161,12 @@ def hotel_search(
             "max_price": max_price,
             "min_rating": min_rating,
             "min_stars": None if stars == "any" else int(stars),
+            "breakfast": breakfast,
+            "free_cancellation": free_cancellation,
+            "wifi": wifi,
+            "pool": pool,
+            "parking": parking,
+            "min_reviews": min_reviews,
         },
         "summary": {
             "count": len(results.get("hotels", [])),

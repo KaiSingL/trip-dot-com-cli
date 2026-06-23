@@ -26,6 +26,12 @@ class HotelSearchRequest:
     max_price: int | None = None
     min_price: int | None = None
     min_rating: float | None = None
+    breakfast: bool = False
+    free_cancellation: bool = False
+    wifi: bool = False
+    pool: bool = False
+    parking: bool = False
+    min_reviews: int | None = None
     sort: str = "price"
     max_results: int = 10
     currency: str = "HKD"
@@ -50,6 +56,8 @@ class HotelSearchRequest:
             raise ValueError("min_price must be >= 0")
         if self.min_rating is not None and not (0 <= self.min_rating <= 10):
             raise ValueError("min_rating must be 0-10")
+        if self.min_reviews is not None and self.min_reviews < 0:
+            raise ValueError("min_reviews must be >= 0")
 
 
 def build_search_url(city: str, checkin: str, checkout: str, **extra) -> str:
@@ -86,6 +94,11 @@ def build_search_url(city: str, checkin: str, checkout: str, **extra) -> str:
             params["maxPrice"] = str(extra["max_price"])
         if extra.get("min_rating") is not None:
             params["score"] = str(int(extra["min_rating"] * 10))
+
+        # Boolean amenities (may be passed as 1 or ignored by site)
+        for key in ["breakfast", "free_cancellation", "wifi", "pool", "parking"]:
+            if extra.get(key):
+                params[key] = "1"
 
         qs = urllib.parse.urlencode(params)
         return f"{base}?{qs}"
@@ -160,6 +173,11 @@ def run_hotel_search(req: HotelSearchRequest) -> dict[str, Any]:
         currency=req.currency,
         min_price=req.min_price,
         min_rating=req.min_rating,
+        breakfast=req.breakfast,
+        free_cancellation=req.free_cancellation,
+        wifi=req.wifi,
+        pool=req.pool,
+        parking=req.parking,
     )
 
     raw_hotels = fetch_hotels(
@@ -185,6 +203,20 @@ def run_hotel_search(req: HotelSearchRequest) -> dict[str, Any]:
         hotels = [h for h in hotels if (h.get("price_usd") or 0) >= req.min_price]
     if req.min_rating:
         hotels = [h for h in hotels if (h.get("rating") or 0) >= req.min_rating]
+
+    # Amenity and other filters (post-scrape)
+    if req.breakfast:
+        hotels = [h for h in hotels if h.get("breakfast")]
+    if req.free_cancellation:
+        hotels = [h for h in hotels if h.get("free_cancellation")]
+    if req.wifi:
+        hotels = [h for h in hotels if h.get("wifi")]
+    if req.pool:
+        hotels = [h for h in hotels if h.get("pool")]
+    if req.parking:
+        hotels = [h for h in hotels if h.get("parking")]
+    if req.min_reviews is not None:
+        hotels = [h for h in hotels if (h.get("review_count") or 0) >= req.min_reviews]
 
     # Basic sort client side for cases where server sort not perfect
     if req.sort == "price":

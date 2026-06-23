@@ -94,6 +94,18 @@ def fetch_hotels(
                         const priceEl = container && container.querySelector ? container.querySelector("[class*='price' i], [class*='Price'], [class*='amount']") : null;
                         const ratingEl = container && container.querySelector ? container.querySelector("[class*='score' i], [class*='rating'], [class*='review']") : null;
 
+                        // Try to extract stars and amenities from the card
+                        const starText = (container ? container.innerText : '') + ' ' + name;
+                        const starMatch = starText.match(/(\d)\s*★|★{1,5}|(\d)\s*star/i);
+                        const stars = starMatch ? parseInt(starMatch[1] || starMatch[2] || '0') : null;
+
+                        const cardText = (container ? container.innerText.toLowerCase() : '') + ' ' + (a.innerText || '').toLowerCase();
+                        const hasBreakfast = /breakfast|早餐/.test(cardText);
+                        const hasWifi = /wifi|wi-fi|wireless|无线/.test(cardText);
+                        const hasPool = /pool|游泳池|swimming/.test(cardText);
+                        const hasParking = /parking|停车|car park/.test(cardText);
+                        const freeCancel = /free cancel|免费取消|free cancellation|可免费取消/.test(cardText);
+
                         const m = a.href.match(/detail-(\\d+)/i);
                         out.push({
                             name,
@@ -101,6 +113,12 @@ def fetch_hotels(
                             rating_text: ratingEl ? ratingEl.innerText.trim() : null,
                             url: a.href,
                             hotel_id: m ? m[1] : null,
+                            stars,
+                            breakfast: hasBreakfast,
+                            wifi: hasWifi,
+                            pool: hasPool,
+                            parking: hasParking,
+                            free_cancellation: freeCancel,
                         });
                     });
                     return out;
@@ -115,6 +133,12 @@ def fetch_hotels(
                     "rating_text": item.get("rating_text"),
                     "url": item.get("url"),
                     "hotel_id": item.get("hotel_id"),
+                    "stars": item.get("stars"),
+                    "breakfast": item.get("breakfast"),
+                    "wifi": item.get("wifi"),
+                    "pool": item.get("pool"),
+                    "parking": item.get("parking"),
+                    "free_cancellation": item.get("free_cancellation"),
                 })
 
             # Last resort broad scrape for hotel detail links that have good names
@@ -125,7 +149,16 @@ def fetch_hotels(
                 )
                 for l in detail_links:
                     if l["text"] and len(l["text"]) > 5 and not l["text"].lower().startswith("hotel"):
-                        results.append({"name": l["text"], "url": l["href"]})
+                        results.append({
+                            "name": l["text"], 
+                            "url": l["href"],
+                            "stars": null,
+                            "breakfast": false,
+                            "wifi": false,
+                            "pool": false,
+                            "parking": false,
+                            "free_cancellation": false,
+                        })
 
         except PlaywrightTimeout as e:
             raise RuntimeError(

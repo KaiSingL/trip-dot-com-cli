@@ -78,7 +78,7 @@ def mock_search_result():
 @pytest.fixture
 def mock_config(monkeypatch):
     """In-memory config for testing. Replaces the real config functions."""
-    cfg = {"currency": "HKD", "region": "hk"}
+    cfg = {"currency": "HKD", "region": "hk", "breakfast": False, "free_cancellation": False, "wifi": False, "pool": False, "parking": False}
 
     def fake_get(key, default=None):
         if key in cfg:
@@ -88,6 +88,8 @@ def mock_config(monkeypatch):
             return default or "HKD"
         if key == "region":
             return default or "hk"
+        if key in ["breakfast", "free_cancellation", "wifi", "pool", "parking"]:
+            return default or False
         return default
 
     def fake_set(key, value):
