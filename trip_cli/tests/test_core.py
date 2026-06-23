@@ -28,15 +28,17 @@ class TestBuildSearchUrl:
     def test_basic_url(self):
         url = build_search_url("Singapore", "2026-07-15", "2026-07-18")
         assert "trip.com" in url
-        assert "singapore-hotels-list-73" in url
+        assert "city=73" in url
         assert "checkin=2026%2F07%2F15" in url
         assert "curr=USD" in url
+        assert "/hotels/list" in url
 
     def test_unknown_city_url(self):
         url = build_search_url("Bali", "2026-08-01", "2026-08-05", currency="SGD")
-        assert "bali-hotels-list-723" in url
         assert "trip.com" in url
+        assert "city=723" in url
         assert "curr=SGD" in url
+        assert "/hotels/list" in url
 
 
 class TestHotelSearchRequest:

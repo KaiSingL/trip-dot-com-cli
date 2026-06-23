@@ -28,7 +28,8 @@ class TestCliBasics:
         result = runner.invoke(cli, ["url", "--city", "Singapore", "--checkin", "2026-07-15", "--checkout", "2026-07-18"])
         assert result.exit_code == 0
         assert "trip.com" in result.output
-        assert "singapore-hotels-list" in result.output
+        assert "/hotels/list" in result.output
+        assert "city=" in result.output
 
 
 class TestHotelSearchCli:

@@ -48,30 +48,46 @@ class HotelSearchRequest:
 
 def build_search_url(city: str, checkin: str, checkout: str, **extra) -> str:
     """Build a working Trip.com hotel list search URL.
-    Prefers regional domains and slug-hotels-list style that contain real hotel cards.
+    Matches the format used by the Trip.com website (/hotels/list?city=ID...).
     """
     info = resolve_city(city)
     slug = info.get("slug", city.lower().replace(" ", "-"))
     cid = info.get("id")
+    display_name = info.get("display", city)
 
-    # sg. + slug-hotels-list or slug-hotels-list-{id}
-    suffix = f"{slug}-hotels-list"
+    domain = get_trip_domain()
+
     if cid:
-        suffix = f"{slug}-hotels-list-{cid}"
-
-    base = f"https://{get_trip_domain()}/hotels/{suffix}"
-
-    params = {
-        "checkin": checkin.replace("-", "/"),
-        "checkout": checkout.replace("-", "/"),
-        "curr": extra.get("currency", "USD"),
-        "adult": str(extra.get("adults", 2)),
-        "children": str(extra.get("children", 0)),
-        "rooms": str(extra.get("rooms", 1)),
-    }
-
-    qs = urllib.parse.urlencode(params)
-    return f"{base}/?{qs}"
+        # Official style used by the website search form
+        base = f"https://{domain}/hotels/list"
+        params = {
+            "city": cid,
+            "cityName": display_name,
+            "searchWord": display_name,
+            "checkin": checkin.replace("-", "/"),
+            "checkout": checkout.replace("-", "/"),
+            "crn": str(extra.get("rooms", 1)),           # crn = room count on the site
+            "adult": str(extra.get("adults", 2)),
+            "children": str(extra.get("children", 0)),
+            "ages": "",
+            "curr": extra.get("currency", "USD"),
+        }
+        qs = urllib.parse.urlencode(params)
+        return f"{base}?{qs}"
+    else:
+        # Fallback for unknown cities (slug style)
+        suffix = f"{slug}-hotels-list"
+        base = f"https://{domain}/hotels/{suffix}"
+        params = {
+            "checkin": checkin.replace("-", "/"),
+            "checkout": checkout.replace("-", "/"),
+            "curr": extra.get("currency", "USD"),
+            "adult": str(extra.get("adults", 2)),
+            "children": str(extra.get("children", 0)),
+            "rooms": str(extra.get("rooms", 1)),
+        }
+        qs = urllib.parse.urlencode(params)
+        return f"{base}/?{qs}"
 
 
 def resolve_city(city: str) -> dict[str, Any]:

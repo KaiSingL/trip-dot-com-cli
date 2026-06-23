@@ -33,7 +33,7 @@ MOCK_RAW_HOTELS = [
 ]
 
 MOCK_SEARCH_RESULT = {
-    "search_url": "https://hk.trip.com/hotels/singapore-hotels-list-73/?checkin=2026/07/15&checkout=2026/07/18&curr=USD",
+    "search_url": "https://hk.trip.com/hotels/list?city=73&checkin=2026/07/15&checkout=2026/07/18&crn=1&adult=2&children=0&curr=USD",
     "query_city": "Singapore",
     "cheapest": 95.0,
     "hotels": [
